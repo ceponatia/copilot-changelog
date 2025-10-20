@@ -21,7 +21,7 @@ MAX_ITEMS_PER_RUN = 5
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 GITHUB_MODELS_TOKEN = os.environ.get("GITHUB_TOKEN") or os.environ.get("GITHUB_MODELS_TOKEN")
-GITHUB_MODELS_MODEL = os.environ.get("GITHUB_MODELS_MODEL", "gpt-4o-mini")
+GITHUB_MODELS_MODEL = os.environ.get("GITHUB_MODELS_MODEL", "openai/gpt-5-mini")
 GITHUB_MODELS_API_URL = os.environ.get(
     "GITHUB_MODELS_API_URL", "https://api.githubcopilot.com/v1/chat/completions"
 )
@@ -136,7 +136,7 @@ def openai_llm_bulleted_summary(entry: EntryDict, api_key: str | None) -> str | 
             "Content-Type": "application/json",
         }
         body = {
-            "model": "gpt-4o-mini",
+            "model": "openai/gpt-5-mini",
             "temperature": 0.2,
             "messages": [
                 {"role": "system", "content": "You are a concise release note summarizer."},

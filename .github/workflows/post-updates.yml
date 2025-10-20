@@ -9,6 +9,14 @@ on:
   pull_request:
     branches: ["main"]
 
+concurrency:
+  group: post-copilot-changelog
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  models: read
+
 jobs:
   post:
     name: Post updates
@@ -16,16 +24,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Restore seen.json cache
+        uses: actions/cache/restore@v4
+        with:
+          path: seen.json
+          key: seen-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            seen-${{ runner.os }}-
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
       - run: pip install -r requirements.txt
       - name: Run poster
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-          python copilot_changelog_to_discord.py
+          # Use the built-in GITHUB_TOKEN rather than a PAT/secret
+          GITHUB_TOKEN: ${{ github.token }}
+          # Optional: pick a model from the GitHub Models catalog (fallback to basic summary in code)
+          GITHUB_MODELS_MODEL: openai/gpt-5-mini
+        run: python copilot_changelog_to_discord.py
+      - name: Save seen.json cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: seen.json
+          key: seen-${{ runner.os }}-${{ github.run_id }}
 
   lint:
     name: Lint & Typecheck & Tests
@@ -35,7 +58,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
       - run: pip install -r requirements.txt -r requirements-dev.txt
       - run: ruff check .
       - run: mypy .

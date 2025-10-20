@@ -1,6 +1,6 @@
 # Copilot Changelog → Discord
 
-Post GitHub Copilot changelog updates from the GitHub Changelog RSS feed to a Discord channel using a webhook. Summaries can be basic (no AI), generated with GitHub-hosted models, or via OpenAI if you provide credentials.
+Post GitHub Copilot changelog updates from the GitHub Changelog RSS feed to a Discord channel using a webhook. Summaries can be basic (no AI) or generated with GitHub-hosted models. An OpenAI fallback exists in code but is no longer used in CI.
 
 ## What it does
 
@@ -8,7 +8,7 @@ Post GitHub Copilot changelog updates from the GitHub Changelog RSS feed to a Di
 - Filters entries tagged for GitHub Copilot
 - Summarizes each entry
   - Default: HTML stripped + ~420 chars
-  - Optional: 2–4 AI bullet points when `GITHUB_TOKEN`/`GITHUB_MODELS_TOKEN` or `OPENAI_API_KEY` is set
+  - Optional: 2–4 AI bullet points when `GITHUB_TOKEN`/`GITHUB_MODELS_TOKEN` is set (GitHub Models preferred)
 - Posts 1–N entries as Discord embeds via webhook
 - Avoids duplicates by tracking IDs in `seen.json`
 
@@ -31,10 +31,10 @@ python3 -m venv .venv
 source .venv/bin/activate.fish  # use .venv/bin/activate for bash/zsh
 pip install -r requirements.txt
 export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/..."
-# Optionally enable AI summaries (GitHub Models preferred)
-# export GITHUB_TOKEN="ghp_..."            # or set GITHUB_MODELS_TOKEN
-# export GITHUB_MODELS_MODEL="gpt-4o-mini"  # optional override
-# export OPENAI_API_KEY="sk-..."            # fallback provider
+# Optionally enable AI summaries with GitHub Models
+# export GITHUB_TOKEN="ghp_..."              # or set GITHUB_MODELS_TOKEN
+# export GITHUB_MODELS_MODEL="openai/gpt-5-mini"    # optional override
+# export GITHUB_MODELS_API_URL="https://api.githubcopilot.com/v1/chat/completions"  # optional override
 python copilot_changelog_to_discord.py
 ```
 
@@ -50,11 +50,14 @@ The script exits 0 if nothing new to post. On success, a `seen.json` file will b
 
 This repo includes a workflow that posts hourly in UTC and on manual dispatch.
 
-Add repository secrets:
+Add repository secrets and variables:
 
-- `DISCORD_WEBHOOK_URL` — Required. Your Discord webhook URL
-- `GITHUB_TOKEN` or `GITHUB_MODELS_TOKEN` — Optional. Enables GitHub Models summaries
-- `OPENAI_API_KEY` — Optional fallback for AI bullet summaries
+- Secrets
+  - `DISCORD_WEBHOOK_URL` — Required. Your Discord webhook URL
+  - `GITHUB_MODELS_TOKEN` — Required for AI summaries. Token with access to GitHub Models (PAT or fine‑grained)
+- Variables (optional)
+  - `GITHUB_MODELS_MODEL` — Model name override (defaults to `openai/gpt-5-mini` in code)
+  - `GITHUB_MODELS_API_URL` — Override API URL (defaults to GitHub Copilot Inference endpoint)
 
 Workflow is defined in `.github/workflows/post-updates.yml` and uses Python 3.11.
 
@@ -70,6 +73,7 @@ Workflow is defined in `.github/workflows/post-updates.yml` and uses Python 3.11
 
 - Never commit secrets such as webhook URLs or API keys.
 - Prefer GitHub Actions repository secrets for CI.
+  - For AI summaries, use `GITHUB_MODELS_TOKEN` and optional vars `GITHUB_MODELS_MODEL`/`GITHUB_MODELS_API_URL`.
 
 ## Development
 
