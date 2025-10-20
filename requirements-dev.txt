@@ -1,0 +1,6 @@
+pytest
+ruff
+mypy
+types-requests
+types-python-dateutil
+types-beautifulsoup4

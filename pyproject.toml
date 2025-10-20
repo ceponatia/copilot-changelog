@@ -1,0 +1,46 @@
+[project]
+name = "copilot-changelog-discord"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 110
+
+[tool.ruff.lint]
+select = [
+  "E",  # pycodestyle
+  "F",  # pyflakes
+  "I",  # isort
+  "B",  # flake8-bugbear
+  "UP", # pyupgrade
+]
+ignore = [
+  "E203", # whitespace before ':' (black compat)
+  "E501", # handled by formatter/line-length
+  "UP017", # prefer timezone.utc for mypy compatibility
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["copilot_changelog_to_discord"]
+
+[tool.mypy]
+python_version = "3.11"
+strict_optional = true
+disallow_untyped_defs = true
+disallow_any_generics = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+no_implicit_optional = true
+pretty = true
+show_error_codes = true
+ignore_missing_imports = false
+
+[[tool.mypy.overrides]]
+module = [
+  "feedparser",
+  "feedparser.*",
+  "bs4.*",
+  "dateutil.*",
+]
+ignore_missing_imports = true
