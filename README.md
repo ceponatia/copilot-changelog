@@ -35,8 +35,13 @@ Automatically post **GitHub Copilot** updates (from the GitHub Changelog RSS) to
       This lets the workflow call **GitHub Models** with the built‑in `GITHUB_TOKEN` (no PAT needed).
 
 4) **Run it**
-   The workflow runs **hourly** (UTC) and via **Run workflow** (manual).  
+   The workflow runs **daily at 22:00 UTC** (≈ 5pm EST) and via **Run workflow** (manual).  
    First manual run: **Actions → Post Copilot Changelog to Discord → Run workflow**.
+
+   • Manual force: toggle “Force post (ignore seen.json)” to send regardless of history.  
+   • Push force: include the literal token `[force-post]` anywhere in your commit message on `main` to trigger a one-off run that ignores `seen.json` (does not save state). Examples:
+   - `chore: test poster [force-post]`
+   - `[force-post] debug poster`
 
 That’s it. New Copilot changelog entries post to your channel automatically.
 
@@ -63,9 +68,9 @@ python copilot_changelog_to_discord.py
 
 ## How summaries work
 
-- **Default (no AI):** HTML‑stripped snippet (~420 chars).  
-- **With AI (preferred in CI):** The workflow uses **GitHub Models** through the automatic `GITHUB_TOKEN` and `permissions: models: read`.  
-  - Optional model override via env `MODEL_ID` (the workflow example uses `openai/gpt-4o`).  
+- **Default (no AI):** HTML‑stripped snippet (~420 chars).
+- **With AI (preferred in CI):** The workflow uses **GitHub Models** through the automatic `GITHUB_TOKEN` and `permissions: models: read`.
+  - Optional model override via env `GITHUB_MODELS_MODEL` (default: `openai/gpt-5-mini`).
   - If the API isn’t accessible, the script **falls back** to the default summary.
 
 > You do **not** need an OpenAI API key for CI. Only consider a PAT if your org policy blocks `GITHUB_TOKEN` access to Models.
@@ -75,6 +80,12 @@ python copilot_changelog_to_discord.py
 - Posted item IDs are stored in `seen.json`.  
 - Future runs skip anything already recorded.  
 - Delete `seen.json` if you want to re‑post historical items (not recommended for production).
+  
+In CI, `seen.json` is cached between runs to avoid duplicate posts across runners.
+
+## Scheduling note
+
+The schedule is `0 22 * * *` (22:00 UTC) which aligns with ~5pm Eastern Standard Time. During Eastern Daylight Time, 5pm ET corresponds to 21:00 UTC; if you need an exact “5pm America/New_York” trigger year‑round, use a manual run or adjust the cron seasonally.
 
 ## Troubleshooting
 

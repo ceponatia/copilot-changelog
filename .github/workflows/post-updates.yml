@@ -3,7 +3,12 @@ name: Post Copilot Changelog to Discord
 on:
   schedule:
     - cron: "0 22 * * *" # daily at 22:00 UTC (5pm EST)
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      force_post:
+        description: "Force post (ignore seen.json)"
+        type: boolean
+        default: false
   push:
     branches: ["main"]
   pull_request:
@@ -39,6 +44,9 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -r requirements.txt
+      - name: Derive FORCE_POST from dispatch input
+        if: github.event_name == 'workflow_dispatch' && inputs.force_post == true
+        run: echo "FORCE_POST=1" >> "$GITHUB_ENV"
       - name: Derive FORCE_POST from commit message
         if: github.event_name == 'push' && contains(github.event.head_commit.message, '[force-post]')
         run: echo "FORCE_POST=1" >> "$GITHUB_ENV"
