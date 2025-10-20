@@ -9,7 +9,8 @@ __pycache__/
 .DS_Store
 .idea/
 .vscode/
-.github/
+.github/prompts/
+.github/copilot-instructions.md
 
 # App runtime state
 seen.json
