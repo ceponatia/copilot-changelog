@@ -26,6 +26,7 @@ GITHUB_MODELS_API_URL = os.environ.get(
     "GITHUB_MODELS_API_URL", "https://api.githubcopilot.com/v1/chat/completions"
 )
 SUMMARY_TIMEOUT = float(os.environ.get("SUMMARY_HTTP_TIMEOUT", "20"))
+FORCE_POST = os.environ.get("FORCE_POST", "").strip() not in ("", "0", "false", "False")
 
 
 class EntryDict(TypedDict, total=False):
@@ -70,6 +71,18 @@ def save_state(ids: Iterable[str], path: str = STATE_FILE) -> None:
 
 def fetch_feed(url: str = FEED_URL) -> Any:
     return feedparser.parse(url)
+
+
+def entry_fingerprint(entry: EntryDict) -> str:
+    """Return a stable identifier for a feed entry.
+
+    Prefer the feed's `id`/`guid` fields, else fall back to `link` or `title`.
+    """
+    for key in ("id", "guid", "entry_id"):
+        v = entry.get(key)
+        if v:
+            return str(v)
+    return str(entry.get("link") or entry.get("title") or "")
 
 
 def is_copilot_tagged(entry: EntryDict) -> bool:
@@ -298,10 +311,10 @@ def main() -> int:
     for e in entries:
         if not is_copilot_tagged(e):
             continue
-        eid = str(e.get("id") or e.get("link") or e.get("title") or "")
+        eid = entry_fingerprint(e)
         if not eid:
             continue
-        if eid in seen:
+        if not FORCE_POST and eid in seen:
             continue
         filtered.append(e)
 
@@ -317,8 +330,9 @@ def main() -> int:
     embeds = [to_discord_embed(e) for e in to_send]
     ok = post_to_discord(embeds)
     if ok:
-        ids = [str(e.get("id") or e.get("link") or e.get("title")) for e in to_send]
-        save_state(ids, STATE_FILE)
+        if not FORCE_POST:
+            ids = [entry_fingerprint(e) for e in to_send]
+            save_state(ids, STATE_FILE)
         return 0
     return 2
 
