@@ -2,7 +2,7 @@ name: Post Copilot Changelog to Discord
 
 on:
   schedule:
-    - cron: "0 * * * *" # hourly in UTC
+    - cron: "0 22 * * *" # daily at 22:00 UTC (5pm EST)
   workflow_dispatch: {}
   push:
     branches: ["main"]

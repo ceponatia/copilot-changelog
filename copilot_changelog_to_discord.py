@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, TypedDict
 
-import feedparser  # type: ignore[import-untyped]
+import feedparser
 import requests
 from bs4 import BeautifulSoup
 from dateutil import parser as dateparser
