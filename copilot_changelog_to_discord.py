@@ -27,6 +27,8 @@ GITHUB_MODELS_API_URL = os.environ.get(
 )
 SUMMARY_TIMEOUT = float(os.environ.get("SUMMARY_HTTP_TIMEOUT", "20"))
 FORCE_POST = os.environ.get("FORCE_POST", "").strip() not in ("", "0", "false", "False")
+DRY_RUN = os.environ.get("DRY_RUN", "").strip() not in ("", "0", "false", "False")
+SUMMARY_DEBUG = os.environ.get("SUMMARY_DEBUG", "").strip() not in ("", "0", "false", "False")
 
 
 class EntryDict(TypedDict, total=False):
@@ -219,10 +221,16 @@ def github_llm_bulleted_summary(entry: EntryDict, token: str | None) -> str | No
 def summarize_entry(entry: EntryDict) -> str:
     summary = github_llm_bulleted_summary(entry, GITHUB_MODELS_TOKEN)
     if summary:
+        if SUMMARY_DEBUG:
+            print("SUMMARY_DEBUG: used GitHub Models", file=sys.stderr)
         return summary
     summary = openai_llm_bulleted_summary(entry, OPENAI_API_KEY)
     if summary:
+        if SUMMARY_DEBUG:
+            print("SUMMARY_DEBUG: used OpenAI fallback", file=sys.stderr)
         return summary
+    if SUMMARY_DEBUG:
+        print("SUMMARY_DEBUG: used basic summary", file=sys.stderr)
     return basic_summary(entry)
 
 
@@ -282,6 +290,13 @@ def post_to_discord(embeds: Sequence[Embed]) -> bool:
             for e in embeds
         ],
     }
+    if DRY_RUN:
+        try:
+            print(json.dumps(payload, indent=2))
+        except Exception:
+            print("DRY_RUN: (payload not JSON-serializable)")
+        print("DRY_RUN: skipping Discord webhook post", file=sys.stderr)
+        return True
     try:
         r = requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=20)
         if 200 <= r.status_code < 300:
