@@ -97,10 +97,10 @@ When posting to a Discord **Forum** channel via a webhook, Discord requires a th
 - Prefer setting `DISCORD_THREAD_ID` to post into a specific existing thread.
 - Or set `DISCORD_THREAD_NAME` to create a thread with a fixed name.
 - Or control behavior with `DISCORD_FORUM_MODE`:
-   - `per-item` (default): Always create one thread per item with AI‑derived titles.
-   - `auto`: Try one thread for the run (AI‑derived title). If that fails, post each item separately without thread names.
-   - `single`: Create one thread per run with a single AI‑derived title (from the first item) and include all embeds in it.
-   - `off`: Never set `thread_name` automatically; just attempt a batch post.
+  - `per-item` (default): Always create one thread per item with AI‑derived titles.
+  - `auto`: Try one thread for the run (AI‑derived title). If that fails, post each item separately without thread names.
+  - `single`: Create one thread per run with a single AI‑derived title (from the first item) and include all embeds in it.
+  - `off`: Never set `thread_name` automatically; just attempt a batch post.
   
 When titles are derived, the script uses GitHub Models (default `openai/gpt-5-mini`); if unavailable, it falls back to the entry title or a short summary phrase. Titles are cleaned and trimmed to ~90 chars.
 
