@@ -10,6 +10,10 @@ Automatically post **GitHub Copilot** updates (from the GitHub Changelog RSS) to
   - Optional: **AI summary** (2–4 bullets) via **GitHub Models** using the built‑in `GITHUB_TOKEN`.
 - Posts one or more items to Discord as **embeds**.
 - Avoids duplicates by recording IDs in `seen.json`.
+- Supports Discord **Forum channels** by providing a thread:
+  - If `DISCORD_THREAD_ID` is set, posts into that existing thread.
+  - Else if `DISCORD_THREAD_NAME` is set, creates a new thread with that name.
+  - Else, behavior is controlled by `DISCORD_FORUM_MODE` (default `auto`).
 
 ## Quick setup (GitHub only)
 
@@ -57,6 +61,17 @@ pip install -r requirements.txt
 # Required for local run:
 export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/…"
 
+# Optional (Forum channel support)
+# Post into an existing thread:
+# export DISCORD_THREAD_ID="1234567890123456789"
+# Or always create a thread with this name:
+# export DISCORD_THREAD_NAME="GitHub Copilot Changelog"
+# Control behavior if neither is set (default: auto)
+# export DISCORD_FORUM_MODE=auto     # try one thread for the run (AI title), else per-item without titles
+# export DISCORD_FORUM_MODE=per-item # always one thread per item (AI-derived titles)
+# export DISCORD_FORUM_MODE=single   # one thread per run; title from first item (AI-derived)
+# export DISCORD_FORUM_MODE=off      # never add thread_name automatically
+
 # Optional AI summaries locally (PAT only needed outside Actions):
 # export GITHUB_TOKEN="ghp_…"
 
@@ -75,6 +90,24 @@ python copilot_changelog_to_discord.py
 
 > You do **not** need an OpenAI API key for CI. Only consider a PAT if your org policy blocks `GITHUB_TOKEN` access to Models.
 
+### Thread titles in Forum channels
+
+When posting to a Discord **Forum** channel via a webhook, Discord requires a thread. This script handles that automatically:
+
+- Prefer setting `DISCORD_THREAD_ID` to post into a specific existing thread.
+- Or set `DISCORD_THREAD_NAME` to create a thread with a fixed name.
+- Or control auto behavior with `DISCORD_FORUM_MODE`:
+      - `auto` (default): Try one thread for the run (AI‑derived title). If that fails, post each item separately without thread names.
+      - `per-item`: Always create one thread per item with AI‑derived titles.
+      - `single`: Create one thread per run with a single AI‑derived title (from the first item) and include all embeds in it.
+      - `off`: Never set `thread_name` automatically; just attempt a batch post.
+  
+When titles are derived, the script uses GitHub Models (default `openai/gpt-5-mini`); if unavailable, it falls back to the entry title or a short summary phrase. Titles are cleaned and trimmed to ~90 chars.
+
+### GitHub Actions: toggle forum mode
+
+The provided workflow exposes a dispatcher input `forum_mode` with the same options (`auto`, `per-item`, `single`, `off`). Manual runs can choose a mode without changing code or env vars.
+
 ## Duplicate prevention
 
 - Posted item IDs are stored in `seen.json`.  
@@ -91,7 +124,7 @@ The schedule is `0 22 * * *` (22:00 UTC) which aligns with ~5pm Eastern Standard
 
 - **Nothing posts:** The feed may have no new Copilot items, or they were already posted (see `seen.json`). Try manual run.  
 - **Webhook errors (400/401/403):** Re‑check your `DISCORD_WEBHOOK_URL` and that the channel still exists.  
-- **Models call fails:** Your org may not allow Models via `GITHUB_TOKEN`. Either enable `models: read` at the org level, or create a fine‑grained PAT with **Account permission: Models → Read** and set it as `GITHUB_TOKEN` in the job env.
+- **Models call fails:** Your org may not allow Models via `GITHUB_TOKEN`. Either enable `models: read` at the org level, or create a fine‑grained PAT with **Account permission: Models → Read** and set it as `GITHUB_TOKEN` in the job env. When this happens, posts still succeed; thread titles simply fall back to non‑AI derivations.
 
 ## Makefile (developer convenience)
 

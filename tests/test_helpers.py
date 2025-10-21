@@ -51,3 +51,27 @@ def test_summarize_entry_falls_back_to_basic_summary() -> None:
     }
     summary = mod.summarize_entry(entry)
     assert "Copilot improvements to code search." in summary
+
+
+def test_derive_thread_name_falls_back_to_entry_title() -> None:
+    mod = _load_module()
+    mod.GITHUB_MODELS_TOKEN = None
+    mod.OPENAI_API_KEY = None
+    entry: dict[str, Any] = {
+        "title": "Copilot: Improved inline completions",
+        "summary": "<p>Inline completion quality enhancements and latency reduction.</p>",
+    }
+    name = mod.derive_thread_name(entry)
+    assert isinstance(name, str) and len(name) > 0
+    assert "Copilot" in name
+
+
+def test_derive_thread_name_from_summary_when_no_title() -> None:
+    mod = _load_module()
+    mod.GITHUB_MODELS_TOKEN = None
+    mod.OPENAI_API_KEY = None
+    entry: dict[str, Any] = {
+        "summary": "<p>Fixes for Copilot chat rendering with markdown code blocks.</p>",
+    }
+    name = mod.derive_thread_name(entry)
+    assert isinstance(name, str) and len(name) > 0
