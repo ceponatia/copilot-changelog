@@ -14,14 +14,14 @@ on:
         type: boolean
         default: false
       forum_mode:
-        description: "Forum mode: auto | per-item | single | off"
+        description: "Forum mode: per-item | auto | single | off"
         type: choice
         options:
-          - auto
           - per-item
+          - auto
           - single
           - off
-        default: auto
+        default: per-item
   push:
     branches: ["main"]
   pull_request:

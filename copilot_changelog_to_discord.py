@@ -29,8 +29,8 @@ GITHUB_MODELS_MODEL = os.environ.get("GITHUB_MODELS_MODEL", "openai/gpt-5-mini")
 GITHUB_MODELS_API_URL = os.environ.get(
     "GITHUB_MODELS_API_URL", "https://api.githubcopilot.com/v1/chat/completions"
 )
-# Forum posting mode: auto (default), per-item, single, off
-DISCORD_FORUM_MODE = os.environ.get("DISCORD_FORUM_MODE", "auto").strip().lower()
+# Forum posting mode: per-item (default), auto, single, off
+DISCORD_FORUM_MODE = os.environ.get("DISCORD_FORUM_MODE", "per-item").strip().lower()
 SUMMARY_TIMEOUT = float(os.environ.get("SUMMARY_HTTP_TIMEOUT", "20"))
 FORCE_POST = os.environ.get("FORCE_POST", "").strip() not in ("", "0", "false", "False")
 DRY_RUN = os.environ.get("DRY_RUN", "").strip() not in ("", "0", "false", "False")

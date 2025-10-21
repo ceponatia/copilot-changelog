@@ -13,7 +13,7 @@ Automatically post **GitHub Copilot** updates (from the GitHub Changelog RSS) to
 - Supports Discord **Forum channels** by providing a thread:
   - If `DISCORD_THREAD_ID` is set, posts into that existing thread.
   - Else if `DISCORD_THREAD_NAME` is set, creates a new thread with that name.
-  - Else, behavior is controlled by `DISCORD_FORUM_MODE` (default `auto`).
+  - Else, behavior is controlled by `DISCORD_FORUM_MODE` (default `per-item`).
 
 ## Quick setup (GitHub only)
 
@@ -66,9 +66,9 @@ export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/…"
 # export DISCORD_THREAD_ID="1234567890123456789"
 # Or always create a thread with this name:
 # export DISCORD_THREAD_NAME="GitHub Copilot Changelog"
-# Control behavior if neither is set (default: auto)
-# export DISCORD_FORUM_MODE=auto     # try one thread for the run (AI title), else per-item without titles
+# Control behavior if neither is set (default: per-item)
 # export DISCORD_FORUM_MODE=per-item # always one thread per item (AI-derived titles)
+# export DISCORD_FORUM_MODE=auto     # try one thread for the run (AI title), else per-item without titles
 # export DISCORD_FORUM_MODE=single   # one thread per run; title from first item (AI-derived)
 # export DISCORD_FORUM_MODE=off      # never add thread_name automatically
 
@@ -96,11 +96,11 @@ When posting to a Discord **Forum** channel via a webhook, Discord requires a th
 
 - Prefer setting `DISCORD_THREAD_ID` to post into a specific existing thread.
 - Or set `DISCORD_THREAD_NAME` to create a thread with a fixed name.
-- Or control auto behavior with `DISCORD_FORUM_MODE`:
-      - `auto` (default): Try one thread for the run (AI‑derived title). If that fails, post each item separately without thread names.
-      - `per-item`: Always create one thread per item with AI‑derived titles.
-      - `single`: Create one thread per run with a single AI‑derived title (from the first item) and include all embeds in it.
-      - `off`: Never set `thread_name` automatically; just attempt a batch post.
+- Or control behavior with `DISCORD_FORUM_MODE`:
+   - `per-item` (default): Always create one thread per item with AI‑derived titles.
+   - `auto`: Try one thread for the run (AI‑derived title). If that fails, post each item separately without thread names.
+   - `single`: Create one thread per run with a single AI‑derived title (from the first item) and include all embeds in it.
+   - `off`: Never set `thread_name` automatically; just attempt a batch post.
   
 When titles are derived, the script uses GitHub Models (default `openai/gpt-5-mini`); if unavailable, it falls back to the entry title or a short summary phrase. Titles are cleaned and trimmed to ~90 chars.
 
