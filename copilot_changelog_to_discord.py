@@ -156,12 +156,15 @@ def build_title_prompt(entry: EntryDict) -> str:
     - No surrounding quotes or trailing punctuation
     - Max ~90 characters
     - Should clearly identify the Copilot change
+    - no text like 'the post xxx appear first on xxx.'
+    - no text like 'Copilot coding agent is our asynchronous, autonomous background agent.'
     """
     content = strip_html(str(entry.get("summary") or ""))
     title = entry.get("title") or ""
     return (
         "Create a concise forum thread title for the following GitHub Copilot changelog item.\n"
         "- 4 to 10 words\n- Avoid quotes and ending punctuation\n- Max 90 characters\n"
+        "- Don't end the post with 'the post xxx appear first on xxx.' or anything like that\n"
         "Respond with ONLY the title text.\n\n"
         f"Original Title: {title}\n\n"
         f"Content: {content}\n"
@@ -177,10 +180,10 @@ def openai_llm_bulleted_summary(entry: EntryDict, api_key: str | None) -> str | 
             "Content-Type": "application/json",
         }
         body = {
-            "model": "openai/gpt-5-mini",
+            "model": "openai/GPT-5",
             "temperature": 0.2,
             "messages": [
-                {"role": "system", "content": "You are a concise release note summarizer."},
+                {"role": "system", "content": "You are a concise release note summarizer. You will write direct summaries of the RSS feed content without extra information. Omit text such as 'Copilot coding agent is our asynchronous, autonomous background agent.'."},
                 {"role": "user", "content": build_summary_prompt(entry)},
             ],
         }
